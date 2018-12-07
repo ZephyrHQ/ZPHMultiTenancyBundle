@@ -1,0 +1,47 @@
+version: '3.7'
+
+services:
+  php:
+    container_name: ${COMPOSE_PROJECT_NAME}_php
+    build:
+      context: .
+      target: build_php
+      dockerfile: docker/Dockerfile
+    depends_on:
+      - mariadb
+    networks:
+      - app
+
+  apache:
+    container_name: ${COMPOSE_PROJECT_NAME}_apache
+    build:
+      context: .
+      target: build_apache
+      dockerfile: docker/Dockerfile
+    depends_on:
+      - php
+    environment:
+      - PHP_HANDLER_HOST=${HTTPD_PHP_HANDLER_HOST}
+    networks:
+      - app
+
+  mariadb:
+    container_name: ${COMPOSE_PROJECT_NAME}_mariadb
+    build:
+      context: .
+      target: build_mariadb
+      dockerfile: ./docker/Dockerfile
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+    networks:
+      - app
+
+volumes:
+  db: ~
+
+networks:
+  app:
+    name: app
